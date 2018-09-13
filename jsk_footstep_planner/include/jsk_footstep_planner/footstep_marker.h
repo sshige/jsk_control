@@ -142,6 +142,10 @@ namespace jsk_footstep_planner
       const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
     virtual void executeFootstepCB(
       const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+
+    virtual void poseStampedCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+    virtual void poseStampedCommandCallback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+
     virtual void stackFootstepCB(
       const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
     virtual void executeDoneCB(const actionlib::SimpleClientGoalState &state,
@@ -152,6 +156,8 @@ namespace jsk_footstep_planner
     virtual void cancelPlanning();
     virtual void plan(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
     virtual void planIfPossible(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+
+
     virtual void planDoneCB(const actionlib::SimpleClientGoalState &state,
                             const PlanResult::ConstPtr &result);
     virtual jsk_footstep_msgs::FootstepArray footstepArrayFromPosePair(PosePair::Ptr pose_pair,
@@ -180,7 +186,6 @@ namespace jsk_footstep_planner
     virtual void setupMenuHandler();
 
     virtual void configCallback(Config& config, uint32_t level);
-    virtual void poseStampedCommandCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
     virtual bool resetMarkerService(
       std_srvs::Empty::Request& req,
@@ -254,6 +259,7 @@ namespace jsk_footstep_planner
     double foot_size_x_, foot_size_y_, foot_size_z_;
     bool disable_tf_;
     bool use_default_goal_;
+    bool keep_rot_z_;
 
     boost::mutex planner_mutex_;
     PlanningState planning_state_;
@@ -263,6 +269,9 @@ namespace jsk_footstep_planner
     bool have_last_step_;
     jsk_footstep_msgs::Footstep last_steps_[2];
     std::vector<FootstepTrans > stacked_poses_;
+
+    geometry_msgs::PoseStamped pose_stamped_msg_;
+
   private:
   };
 }

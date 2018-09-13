@@ -174,6 +174,8 @@ namespace jsk_footstep_planner
     int close_list_x_num_;
     int close_list_y_num_;
     int close_list_theta_num_;
+    int local_search_range_x_;
+    int local_search_range_y_;
     int profile_period_;
     std::string heuristic_;
     double heuristic_first_rotation_weight_;

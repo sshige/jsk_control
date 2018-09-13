@@ -152,6 +152,7 @@ namespace jsk_footstep_planner
     pnh_.param("footstep_size_x", foot_size_x_, 0.24);
     pnh_.param("footstep_size_y", foot_size_y_, 0.14);
     pnh_.param("footstep_size_z", foot_size_z_, 0.01);
+    pnh_.param("keep_rot_z", keep_rot_z_, false);
     std::vector<double> lleg_footstep_offset, rleg_footstep_offset;
     if (jsk_topic_tools::readVectorParameter(pnh_, "lleg_footstep_offset", lleg_footstep_offset)) {
       lleg_footstep_offset_[0] = lleg_footstep_offset[0];
@@ -178,7 +179,7 @@ namespace jsk_footstep_planner
     }
 
     // pose stamped command interface
-    sub_pose_stamped_command_ = pnh_.subscribe("pose_stamped_command", 1, &FootstepMarker::poseStampedCommandCallback, this);
+    sub_pose_stamped_command_ = pnh_.subscribe("pose_stamped_command", 1, &FootstepMarker::poseStampedCallback, this);
 
     // service servers
     srv_reset_fs_marker_    = pnh_.advertiseService("reset_marker",
@@ -365,6 +366,7 @@ namespace jsk_footstep_planner
   {
     menu_handler_.insert("Reset Marker", boost::bind(&FootstepMarker::resetMarkerCB, this, _1));
     menu_handler_.insert("Execute Footstep", boost::bind(&FootstepMarker::executeFootstepCB, this, _1));
+    menu_handler_.insert("Calculate Footstep to Target Pose", boost::bind(&FootstepMarker::poseStampedCommandCallback, this, _1));
     stack_btn_ = menu_handler_.insert("Stack Footstep", boost::bind(&FootstepMarker::stackFootstepCB, this, _1));
     menu_handler_.setVisible(stack_btn_, false);
     interactive_markers::MenuHandler::EntryHandle mode_handle = menu_handler_.insert("2D/3D Mode");
@@ -451,6 +453,7 @@ namespace jsk_footstep_planner
   {
     // Lock footstep planner
     boost::mutex::scoped_lock lock(planner_mutex_);
+
     if (planning_state_ == FINISHED) {
       jsk_footstep_msgs::ExecFootstepsGoal goal;
       planning_state_ = NOT_STARTED;
@@ -1080,34 +1083,51 @@ namespace jsk_footstep_planner
     use_default_goal_ =  config.use_default_step_as_goal;
   }
 
+  void FootstepMarker::poseStampedCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+  {
+    pose_stamped_msg_ = *msg;
+  }
 
-  void FootstepMarker::poseStampedCommandCallback(
-    const geometry_msgs::PoseStamped::ConstPtr& msg)
+  void FootstepMarker::poseStampedCommandCallback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback)
   {
     ROS_DEBUG("posestamped command is received");
     ROS_INFO("posestamped command is received");
     geometry_msgs::PoseStamped tmp_pose_stamped;
-    if(msg->header.frame_id != odom_frame_id_ && !disable_tf_) {
+    if(pose_stamped_msg_.header.frame_id != odom_frame_id_ && !disable_tf_) {
       // apply target pose to goal marker
       // mutex should be limited in this range because planIfPossible also lock planner_mutex_
       boost::mutex::scoped_lock lock(planner_mutex_);
       try {
-        geometry_msgs::TransformStamped offset = tf_client_->lookupTransform(odom_frame_id_, msg->header.frame_id,
-                                                                             msg->header.stamp, ros::Duration(2.0));
+        geometry_msgs::TransformStamped offset = tf_client_->lookupTransform(odom_frame_id_, pose_stamped_msg_.header.frame_id,
+                                                                             pose_stamped_msg_.header.stamp, ros::Duration(2.0));
         FootstepTrans msg_eigen;
         FootstepTrans offset_eigen;
-        tf::poseMsgToEigen(msg->pose, msg_eigen);
+        tf::poseMsgToEigen(pose_stamped_msg_.pose, msg_eigen);
         tf::transformMsgToEigen(offset.transform, offset_eigen);
         FootstepTrans pose = offset_eigen * msg_eigen;
+
+        if (keep_rot_z_){
+          Eigen::MatrixXd rot_z_kept_matrix = pose.matrix();
+          for (int i=0; i<3; i++){
+            for (int j=0; j<3; j++){
+              if (i == j)
+                rot_z_kept_matrix(i,j) = 1;
+              else
+                rot_z_kept_matrix(i,j) = 0;
+            }
+          }
+          rot_z_kept_matrix(2,3) = 0;
+          pose.matrix() = rot_z_kept_matrix;
+        }
         tf::poseEigenToMsg(pose, tmp_pose_stamped.pose);
-        tmp_pose_stamped.header.stamp = msg->header.stamp;
+        tmp_pose_stamped.header.stamp = pose_stamped_msg_.header.stamp;
         tmp_pose_stamped.header.frame_id = odom_frame_id_;
       } catch(tf2::TransformException ex) {
         ROS_ERROR("posestamped command transformation failed %s",ex.what());
         return;
       }
     } else {
-      tmp_pose_stamped = *msg;
+      tmp_pose_stamped = pose_stamped_msg_;
     }
     server_->setPose("movable_footstep_marker", tmp_pose_stamped.pose, tmp_pose_stamped.header);
     server_->applyChanges();

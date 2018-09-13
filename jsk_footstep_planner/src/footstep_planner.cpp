@@ -49,6 +49,10 @@ namespace jsk_footstep_planner
     srv_ = boost::make_shared <dynamic_reconfigure::Server<Config> > (nh);
     typename dynamic_reconfigure::Server<Config>::CallbackType f =
       boost::bind (&FootstepPlanner::configCallback, this, _1, _2);
+
+    nh.param("local_search_range_x", local_search_range_x_, 3);
+    nh.param("local_search_range_y", local_search_range_y_, 3);
+
     srv_->setCallback (f);
     pub_text_ = nh.advertise<jsk_rviz_plugins::OverlayText>(
       "text", 1, true);
@@ -195,8 +199,9 @@ namespace jsk_footstep_planner
     const double dx = 0.05;
     const double dy = 0.05;
     const double dtheta = pcl::deg2rad(5.0);
-    for (int xi = 0; xi < 3; xi++) {
-      for (int yi = 0; yi < 3; yi++) {
+
+    for (int xi = 0; xi < local_search_range_x_; xi++) {
+      for (int yi = 0; yi < local_search_range_y_; yi++) {
         for (int thetai = 0; thetai < 3; thetai++) {
           Eigen::Affine3f transppp = affineFromXYYaw(xi * dx, yi * dy, thetai * dtheta);
           Eigen::Affine3f transppm = affineFromXYYaw(xi * dx, yi * dy, - thetai * dtheta);
