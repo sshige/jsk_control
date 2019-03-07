@@ -102,18 +102,30 @@
       local_move_x_num: 1
       local_move_y_num: 0
       local_move_theta_num: 0
-      local_move_x_offset: 0.14
+      <!-- local_move_x_offset: 0.14 -->
+      local_move_x_offset: 0.08
       local_move_y_offset: 0.0
       local_move_theta_offset: 0.0
+      local_search_range_x: 3
+      local_search_range_y: 3
     </rosparam>
     <!-- limitation of steps -->
+    <!-- <rosparam> -->
+    <!--   use_transition_limit: false -->
+    <!--   transition_limit_x: 0.5 -->
+    <!--   transition_limit_y: 0.35 -->
+    <!--   transition_limit_z: 0.4 -->
+    <!--   transition_limit_roll:  0.6 -->
+    <!--   transition_limit_pitch: 0.6 -->
+    <!--   transition_limit_yaw:   0.4 -->
+    <!-- </rosparam> -->
     <rosparam>
-      use_transision_limit: false
-      transition_limit_x: 0.5
-      transition_limit_y: 0.35
-      transition_limit_z: 0.4
-      transition_limit_roll:  0.6
-      transition_limit_pitch: 0.6
+      use_transition_limit: true
+      transition_limit_x: 0.3
+      transition_limit_y: 0.3
+      transition_limit_z: 0.3
+      transition_limit_roll:  0.4
+      transition_limit_pitch: 0.4
       transition_limit_yaw:   0.4
     </rosparam>
     <rosparam>
@@ -149,7 +161,7 @@
       - x: 0
         y: 0.02
         theta: 0
-# froward
+# forward
       - x: 0.16
         y: 0
         theta: 0
@@ -222,6 +234,7 @@
   <group if="$(arg use_footstep_marker)">
     <node pkg="jsk_footstep_planner" type="footstep_marker" name="footstep_marker" output="screen">
       <remap from="/footstep_controller" to="jaxon_footstep_controller"/>
+      <remap from="/footstep_marker/pose_stamped_command" to="/checkerdetector_side/objectdetection_pose"/>
       <rosparam subst_value="true">
         disable_tf: false
         frame_id: map
@@ -231,6 +244,7 @@
         rleg_footstep_offset: [0.015502, -0.010078, 0.0]
         default_footstep_margin: 0.2
         use_default_step_as_goal: true
+        keep_rot_z: true
       </rosparam>
     </node>
     <node pkg="jsk_footstep_controller" type="jaxon-footstep-controller.l"
