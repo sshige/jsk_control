@@ -3,7 +3,7 @@ project(optmotiongen)
 
 add_compile_options(-std=c++11)
 
-set(USE_OPENMP true CACHE BOOL "set true to use OpenMP.")
+set(USE_OPENMP true CACHE BOOL "set true to use OpenMP.") # set variablees
 
 find_package(catkin REQUIRED COMPONENTS cmake_modules rostest roscpp roslib)
 find_package(Eigen REQUIRED)
@@ -59,6 +59,7 @@ target_link_libraries(sample_ik ${Boost_LIBRARIES} ${CnoidBody_LIBRARIES} ${catk
 add_library(CnoidSampleIKPlugin SHARED src/sample_ik_plugin.cpp)
 target_link_libraries(sample_ik ${Boost_LIBRARIES} ${CnoidBodyPlugin_LIBRARIES} ${catkin_LIBRARIES})
 
+# SHARED means create shared library
 add_library(SimpleBodyGenerator SHARED src/SimpleBodyGenerator.cpp)
 target_link_libraries(SimpleBodyGenerator ${Boost_LIBRARIES} ${CnoidBody_LIBRARIES} ${catkin_LIBRARIES})
 
