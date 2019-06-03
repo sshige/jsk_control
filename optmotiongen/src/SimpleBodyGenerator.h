@@ -10,6 +10,8 @@
 #include <cnoid/EigenUtil>
 
 // #define DEBUG
+#define DEBUG 1
+
 #ifdef DEBUG
 #define DEBUG_PRINT(str) std::cout << "[" << __FUNCTION__ << "] " << str << std::endl;
 #else

@@ -180,6 +180,7 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
 {
   DEBUG_PRINT("IK.");
 
+  cout << "ik is called" << endl;
   // generate joint path
   Link* startLink = body->rootLink();
   Link* endLink = body->link(endLinkName);

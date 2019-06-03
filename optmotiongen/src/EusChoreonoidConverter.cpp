@@ -134,6 +134,7 @@ extern "C" {
   {
     SimpleBodyGenerator *pconv = (SimpleBodyGenerator*)convAddr;
     Position targetPose;
+    cout << "calc inverse kinematics is called" << endl;
     targetPose.translation() = Vector3(pos);
     targetPose.linear() = Quat(quat[0], quat[1], quat[2], quat[3]).normalized().toRotationMatrix();
     vector<double> angleAll;

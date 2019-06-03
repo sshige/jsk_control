@@ -12,7 +12,7 @@
 
   ;; initialize
   (generate-cnoid-model :robot robot) ;; make choreonoid model
-  (print-cnoid-model-info) ;; print info
+  (print-cnoid-model-info);; print info
   (assert (eps= (norm (send robot :angle-vector)) 0.0)
           (format nil "initial euslisp angle-vector should be 0 ~%")
           )
