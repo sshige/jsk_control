@@ -9,6 +9,8 @@
 #include <cnoid/Link>
 #include <cnoid/EigenUtil>
 
+#include <nlopt.hpp>
+
 // #define DEBUG
 #define DEBUG 1
 
@@ -109,6 +111,9 @@ namespace cnoid {
      */
     int calcInverseKinematics(const string &startLinkName, const string &endLinkName,
                               const Position &targetPose, vector<double> &angleAll);
+
+    // Inverse kinematics using nlopt
+    int calcOptInverseKinematics(const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
 
     Body* body;
 

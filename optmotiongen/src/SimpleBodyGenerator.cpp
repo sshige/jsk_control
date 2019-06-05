@@ -179,7 +179,7 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
                                                vector<double> &angleAll)
 {
   DEBUG_PRINT("IK.");
-
+  
   cout << "ik is called" << endl;
   // generate joint path
   Link* startLink = body->rootLink();
@@ -217,3 +217,43 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
   }
   return 0;
 }
+
+
+double SimpleBodyGenerator::calcObjectiveFunc(const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
+{
+  if(!grad.empty()) {
+    // TODO add jacobian
+  }
+  JointPathPtr jointPath = getCustomJointPath(body, startLink, endLink);
+  for (int i = 0; i < jointPath->numJoints(); i++) {
+    DEBUG_PRINT("joint[" << i << "] name: " << jointPath->joint(i)->name());
+  }
+  jointPath->calcForwardKinematics();
+  Position attentionPose = body->link(endLinkName)->position();
+ 
+  // TODO define distance 
+  return 
+
+
+int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
+{
+  DEBUG_PRINT("nlopt IK start");
+
+  cout << "nlopt ik is called" << endl;
+
+  Link* startLink = body->rootLink();
+  Link* endLink = body->link(endLinkName);
+
+  if(!startLink) {
+    cerr << "link " << startLinkName << " not found." << endl;
+    return -1;
+  }
+  if (!endLink) {
+    cerr << "link " << endLinkName << " not found." << endl;
+    return -1;
+  }
+  DEBUG_PRINT("start link name: " << startLink->name());
+  DEBUG_PRINT("end link name: " << endLink->name());
+
+
+
