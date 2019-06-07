@@ -230,10 +230,14 @@ double SimpleBodyGenerator::calcObjectiveFunc(const string &endLinkName, const P
   }
   jointPath->calcForwardKinematics();
   Position attentionPose = body->link(endLinkName)->position();
- 
-  // TODO define distance 
-  return 
 
+  Vector3 attentionP = attentionPose.translation();
+  Vector3 targetP = targetPose.translation();
+  Matrix3 attentionR = attentionPose.rotation();
+  Matrix3 targetR = targetPose.rotation();
+  // refer sugihara 2011 LM
+  return (attentionP - targetP).abs2() + omegaFromRot(targetR.transpose() * attentionR).abs2(); // want to minimize this
+}
 
 int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
 {
@@ -255,5 +259,10 @@ int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, con
   DEBUG_PRINT("start link name: " << startLink->name());
   DEBUG_PRINT("end link name: " << endLink->name());
 
+  JointPathPtr jointPath = getCustomJointPath(body, startLink, endLink);
 
+  DEBUG_PRINT("the number of link is " << jointPath->numjoints());
+  nlopt::opt opt(nlopt::LN_COBYLA, jointPath->numjoints());
 
+  // TODO set and do optimization
+  std::vector<double> 
