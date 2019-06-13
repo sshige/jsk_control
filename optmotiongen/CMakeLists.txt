@@ -5,7 +5,7 @@ add_compile_options(-std=c++11)
 
 set(USE_OPENMP true CACHE BOOL "set true to use OpenMP.") # set variablees
 
-find_package(catkin REQUIRED COMPONENTS cmake_modules rostest roscpp roslib)
+find_package(catkin REQUIRED COMPONENTS cmake_modules rostest roscpp roslib nlopt)
 find_package(Eigen REQUIRED)
 find_package(Boost 1.40 COMPONENTS program_options REQUIRED)
 if(USE_OPENMP)
@@ -24,8 +24,35 @@ if(NOT CnoidBody_FOUND)
 endif()
 pkg_check_modules(CnoidBodyPlugin choreonoid-body-plugin REQUIRED)
 
+#nlopt
+if(nlopt_FOUND_CATKIN_PROJECT)
+  ##
+  set(NLOPT_FOUND true)
+  if(NOT ${nlopt_INCLUDE_DIRS} STREQUAL "")
+    FIND_PATH(NLOPT_INCLUDE_DIR nlopt.h PATHS ${nlopt_INCLUDE_DIRS})
+  else()
+    FIND_PATH(NLOPT_INCLUDE_DIR nlopt.h PATHS ${nlopt_SOURCE_PREFIX}/include ${catkin_INCLUDE_DIRS} ${nlopt_PREFIX}/include/nlopt)
+  endif()
+  ##
+  SET (NLOPT_NAMES nlopt nlopt_cxx)
+  if(NOT ${nlopt_LIBRARY_DIRS} STREQUAL "")
+    FIND_LIBRARY (NLOPT_LIBRARY NAMES ${NLOPT_NAMES}
+      PATHS ${nlopt_LIBRARY_DIRS})
+  else()
+    FIND_LIBRARY (NLOPT_LIBRARY NAMES ${NLOPT_NAMES}
+      PATHS ${nlopt_SOURCE_PREFIX}/lib ${catkin_LIBRARY_DIRS})
+  endif()
+  SET (NLOPT_LIBRARIES ${NLOPT_LIBRARY})
+  ##
+  include_directories(${NLOPT_INCLUDE_DIR})
+  MARK_AS_ADVANCED (NLOPT_LIBRARY NLOPT_INCLUDE_DIR)
+  MESSAGE("-- NLopt found (include: " ${NLOPT_INCLUDE_DIR} ", link: "  ${NLOPT_LIBRARY} ")")
+else ()
+  MESSAGE("-- NLopt missing")
+endif()
+
 catkin_package(
-  CATKIN_DEPENDS roscpp roslib
+  CATKIN_DEPENDS roscpp roslib nlopt
   )
 
 # for debug

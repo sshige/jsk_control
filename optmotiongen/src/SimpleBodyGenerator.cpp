@@ -179,7 +179,6 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
                                                vector<double> &angleAll)
 {
   DEBUG_PRINT("IK.");
-  
   cout << "ik is called" << endl;
   // generate joint path
   Link* startLink = body->rootLink();
@@ -218,8 +217,7 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
   return 0;
 }
 
-
-double SimpleBodyGenerator::calcObjectiveFunc(const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
+double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *my_func_data)
 {
   if(!grad.empty()) {
     // TODO add jacobian
@@ -248,35 +246,35 @@ int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, con
   Link* startLink = body->rootLink();
   Link* endLink = body->link(endLinkName);
 
-  if(!startLink) {
-    cerr << "link " << startLinkName << " not found." << endl;
-    return -1;
-  }
   if (!endLink) {
     cerr << "link " << endLinkName << " not found." << endl;
     return -1;
   }
-  DEBUG_PRINT("start link name: " << startLink->name());
   DEBUG_PRINT("end link name: " << endLink->name());
 
   JointPathPtr jointPath = getCustomJointPath(body, startLink, endLink);
 
-  DEBUG_PRINT("the number of link is " << jointPath->numjoints());
-  nlopt::opt opt(nlopt::LN_COBYLA, jointPath->numjoints());
+  DEBUG_PRINT("the number of link is " << jointPath->numJoints());
+  nlopt::opt opt(nlopt::LN_COBYLA, jointPath->numJoints());
 
-  std::vector<double> lb(jointPath->numjoints, 0);
+  std::vector<double> lb(jointPath->numJoints, 0);
   opt.set_lower_bounds(lb);
 
   opt.set_min_objective(calcObjectiveFunc, NULL);
 
-  std::vector<double> q(jointPath->numjoints, 0);
+  std::vector<double> q(jointPath->numJoints, 0);
   double minf;
-
   try {
     nlopt::result result = opt.optimize(q, minf);
-    std::cout << "found minimum at f(" << x[0] << "," << x[1] << ") = "
-              << std::setprecision(5) << minf << std::endl;
+    std::cout << "minf is" << minf <<std::setprecision(5) << minf << std::endl;
+    // set results
+    angleAll.resize(jointPath->numJoints());
+    for (int i = 0; i < jointPath->numJoints(); i++) {
+      angleAll[i] = q[i];
+    }
   } catch (std::exception &e) {
     std::cout << "nlopt failed: " << e.what() << std::endl;
+    return 1;
   }
+  return 0;
 }

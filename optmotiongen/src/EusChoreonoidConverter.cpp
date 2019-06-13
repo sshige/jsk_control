@@ -31,7 +31,7 @@ extern "C" {
     SimpleBodyGenerator *pconv = (SimpleBodyGenerator*)convAddr;
     Position pose;
     pose.translation() = Vector3(pos);
-    pose.linear() = Quat(quat[0], quat[1], quat[2], quat[3]).normalized().toRotationMatrix();
+    pose.linear() = Quat(quat[0], quat[1], quat[2], quat[3]).normalized().toRotationMatrix(); // linear is rotation matrix
     SimpleBodyGenerator::LinkInfo linkInfo = {
       // basic info
       .name = string(name),
@@ -148,6 +148,16 @@ extern "C" {
   double callCalcOptInverseKinematics(long convAddr, char *startLinkName, char *endLinkName,)
   {
     SimpleBodyGenerator *pconv = (SimpleBodyGenerator *)convAddr;
+    Position targetPose;
+    cout << "calc opt inverse kinematics is called" << endl;
+    targetPose.translation() = Vector3(pos);
+    targetPose.linear() = Quat(quat[0], quat[1], quat[2], quat[3]).normalized().toRotationMatrix();
+    vector<double> angleAll;
+    int ret = pconv->calcOptInverseKinematics(string(endLinkName), targetPose, angleAll);
+    for (int i = 0; i < angleAll.size(); i++) {
+      angleAllArr[i] = angleAll[i];
+    }
+    return ret;
   }
 
   /** \brief Get mass and center of mass. */
