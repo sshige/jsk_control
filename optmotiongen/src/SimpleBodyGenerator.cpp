@@ -217,8 +217,13 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
   return 0;
 }
 
-double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *my_func_data)
+// TODO FIXME!
+double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *data)
 {
+  LinkData *link_data = reinterpret_cast<LinkData*>(data);
+  Link* startLink = body->link(link_data->startLinkName);
+  
+  
   if(!grad.empty()) {
     // TODO add jacobian
   }
@@ -237,7 +242,7 @@ double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std:
   return (attentionP - targetP).abs2() + omegaFromRot(targetR.transpose() * attentionR).abs2(); // want to minimize this
 }
 
-int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
+int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
 {
   DEBUG_PRINT("nlopt IK start");
 

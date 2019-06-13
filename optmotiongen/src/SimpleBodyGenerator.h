@@ -54,6 +54,13 @@ namespace cnoid {
       Link* link;
     };
 
+    struct LinkData
+    {
+      String &startLinkName;
+      String &endLinkName;
+      Position &targetPose;
+    }
+
     /** \brief Default constructor.
      *
      * Do nothing.
