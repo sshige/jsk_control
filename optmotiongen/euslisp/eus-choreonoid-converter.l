@@ -132,6 +132,13 @@
   :integer
   )
 
+(defforeign calc-opt-inverse-kinematics
+  *eus-choreonoid-converter-lib*
+  "callCalcOptInverseKinematics"
+  ()
+  :float
+  )
+
 ;; long callGetMassProp(long convAddr, double *mass, double *comArr)
 (defforeign get-mass-prop
   *eus-choreonoid-converter-lib*

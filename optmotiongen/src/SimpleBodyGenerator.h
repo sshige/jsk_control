@@ -112,6 +112,8 @@ namespace cnoid {
     int calcInverseKinematics(const string &startLinkName, const string &endLinkName,
                               const Position &targetPose, vector<double> &angleAll);
 
+    double calcObjectiveFunc(const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
+
     // Inverse kinematics using nlopt
     int calcOptInverseKinematics(const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
 

@@ -145,6 +145,11 @@ extern "C" {
     return ret;
   }
 
+  double callCalcOptInverseKinematics(long convAddr, char *startLinkName, char *endLinkName,)
+  {
+    SimpleBodyGenerator *pconv = (SimpleBodyGenerator *)convAddr;
+  }
+
   /** \brief Get mass and center of mass. */
   long callGetMassProp(long convAddr, double *mass, double *comArr)
   {

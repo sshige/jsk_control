@@ -264,5 +264,19 @@ int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, con
   DEBUG_PRINT("the number of link is " << jointPath->numjoints());
   nlopt::opt opt(nlopt::LN_COBYLA, jointPath->numjoints());
 
-  // TODO set and do optimization
-  std::vector<double> 
+  std::vector<double> lb(jointPath->numjoints, 0);
+  opt.set_lower_bounds(lb);
+
+  opt.set_min_objective(calcObjectiveFunc, NULL);
+
+  std::vector<double> q(jointPath->numjoints, 0);
+  double minf;
+
+  try {
+    nlopt::result result = opt.optimize(q, minf);
+    std::cout << "found minimum at f(" << x[0] << "," << x[1] << ") = "
+              << std::setprecision(5) << minf << std::endl;
+  } catch (std::exception &e) {
+    std::cout << "nlopt failed: " << e.what() << std::endl;
+  }
+}
