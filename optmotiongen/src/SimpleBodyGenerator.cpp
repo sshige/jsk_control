@@ -217,13 +217,27 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
   return 0;
 }
 
-// TODO FIXME!
 double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *data)
 {
-  LinkData *link_data = reinterpret_cast<LinkData*>(data);
-  Link* startLink = body->link(link_data->startLinkName);
+  vector<LinkData>* link_data = reinterpret_cast<vector<LinkData>*>(data);
+
   
   
+  Link* startLink = body->rootLink();
+  Link* endLink = body->link(link_data->endLinkName);
+
+  if (! startLinkName.empty()) {
+    startLink = body->link(startLinkName);
+    if (!startLink) {
+      cerr << "link " << startLinkName << " not found." << endl;
+      return -1;
+    }
+  }
+  if (!endLink) {
+    cerr << "link " << endLinkName << " not found." << endl;
+    return -1;
+  }
+
   if(!grad.empty()) {
     // TODO add jacobian
   }
@@ -231,6 +245,7 @@ double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std:
   for (int i = 0; i < jointPath->numJoints(); i++) {
     DEBUG_PRINT("joint[" << i << "] name: " << jointPath->joint(i)->name());
   }
+  // set joints
   jointPath->calcForwardKinematics();
   Position attentionPose = body->link(endLinkName)->position();
 
@@ -242,40 +257,53 @@ double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std:
   return (attentionP - targetP).abs2() + omegaFromRot(targetR.transpose() * attentionR).abs2(); // want to minimize this
 }
 
-int SimpleBodyGenerator::calcOptInverseKinematics(const string &endLinkName, const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
+int SimpleBodyGenerator::calcOptInverseKinematics(const string &startLinkName, const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
 {
   DEBUG_PRINT("nlopt IK start");
+  DEBUG_PRINT("start link name: " << startLink->name());
+  DEBUG_PRINT("end link name: " << endLink->name());
 
-  cout << "nlopt ik is called" << endl;
-
-  Link* startLink = body->rootLink();
-  Link* endLink = body->link(endLinkName);
-
+  if (! startLinkName.empty()) {
+    startLink = body->link(startLinkName);
+    if (!startLink) {
+      cerr << "link " << startLinkName << " not found." << endl;
+      return -1;
+    }
+  }
   if (!endLink) {
     cerr << "link " << endLinkName << " not found." << endl;
     return -1;
   }
-  DEBUG_PRINT("end link name: " << endLink->name());
 
   JointPathPtr jointPath = getCustomJointPath(body, startLink, endLink);
+  LinkData linkData = new LinkData;
+  linkData->startLinkName = startLinkName;
+  linkData->endLinkName = endLinkName;
+  linkData->targetPose = targetPose;
+  linkData->jointPath = jointPath;
+  linkDataList.push_back(linkData);
 
-  DEBUG_PRINT("the number of link is " << jointPath->numJoints());
-  nlopt::opt opt(nlopt::LN_COBYLA, jointPath->numJoints());
+  this->opt = nlopt::opt(nlopt::LN_COBYLA, jointPath->numJoints()); // TODO apply multiple algorithm
 
-  std::vector<double> lb(jointPath->numJoints, 0);
+  // set lower bounds
+  for (int i = 0; i < jointPath->numJoints(); i++)
+    this->lb.push_back(0);
   opt.set_lower_bounds(lb);
 
-  opt.set_min_objective(calcObjectiveFunc, NULL);
+  // set min objective function
+  opt.set_min_objective(calcObjectiveFunc, linkDataList);
 
-  std::vector<double> q(jointPath->numJoints, 0);
-  double minf;
+  // set initial values
+  vector<double> _q(jointPath->numJoints, 0);
+  this->q = _q;
+
   try {
-    nlopt::result result = opt.optimize(q, minf);
-    std::cout << "minf is" << minf <<std::setprecision(5) << minf << std::endl;
+    nlopt::result result = this->opt.optimize(this->q, this->minf);
+    std::cout << "minf is" << this->minf <<std::setprecision(5) << this->minf << std::endl;
     // set results
     angleAll.resize(jointPath->numJoints());
     for (int i = 0; i < jointPath->numJoints(); i++) {
-      angleAll[i] = q[i];
+      angleAll[i] = this->q[i];
     }
   } catch (std::exception &e) {
     std::cout << "nlopt failed: " << e.what() << std::endl;

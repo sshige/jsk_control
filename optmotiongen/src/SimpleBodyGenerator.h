@@ -56,9 +56,10 @@ namespace cnoid {
 
     struct LinkData
     {
-      String &startLinkName;
-      String &endLinkName;
+      string &startLinkName;
+      string &endLinkName;
       Position &targetPose;
+      JointPathPtr jointPath;
     }
 
     /** \brief Default constructor.
@@ -119,15 +120,21 @@ namespace cnoid {
     int calcInverseKinematics(const string &startLinkName, const string &endLinkName,
                               const Position &targetPose, vector<double> &angleAll);
 
-    double calcObjectiveFunc(const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
-
     // Inverse kinematics using nlopt
     int calcOptInverseKinematics(const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
+
+    // Objective function which should become minimum
+    static double calcObjectiveFunc(const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
 
     Body* body;
 
   private:
     map<string, LinkInfo> nameLinkInfoMap;
+    nlopt::opt opt;
+    std::vector<double> lb; // lower bound
+    std::vector<double> q; // configuration vector
+    std::vector<LinkData> linkDataList;
+    double minf;
   };
 }
 
