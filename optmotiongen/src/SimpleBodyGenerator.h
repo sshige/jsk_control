@@ -1,6 +1,9 @@
 #ifndef __SIMPLE_BODY_GENERATOR__
 #define __SIMPLE_BODY_GENERATOR__
 
+#include <iostream>
+#include <iomanip>
+#include <limits>
 #include <map>
 #include <cnoid/Body>
 #include <cnoid/JointPath>
@@ -8,6 +11,8 @@
 #include <cnoid/BodyLoader>
 #include <cnoid/Link>
 #include <cnoid/EigenUtil>
+
+
 
 #include <nlopt.hpp>
 
@@ -54,11 +59,12 @@ namespace cnoid {
       Link* link;
     };
 
-    struct LinkData
+    // target info struct
+    struct TargetInfo
     {
-      string &startLinkName;
-      string &endLinkName;
-      Position &targetPose;
+      string startLinkName;
+      string endLinkName;
+      Position targetPose;
       JointPathPtr jointPathPtr;
     };
 
@@ -127,13 +133,13 @@ namespace cnoid {
     static double calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *data);
 
     static Body* body;
+    static std::vector<TargetInfo> targetInfoList;
 
   private:
     map<string, LinkInfo> nameLinkInfoMap;
     nlopt::opt opt;
     std::vector<double> lb; // lower bound
     std::vector<double> q; // configuration vector
-    std::vector<LinkData> linkDataList;
     double minf;
   };
 }

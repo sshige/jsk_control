@@ -1,15 +1,15 @@
-#include <iostream>
 #include "SimpleBodyGenerator.h"
 
 using namespace cnoid;
 using namespace std;
 
+Body* SimpleBodyGenerator::body;
+std::vector<SimpleBodyGenerator::TargetInfo> SimpleBodyGenerator::targetInfoList;
+
 void SimpleBodyGenerator::initializeBodyGeneration(const string &bodyName)
 {
   DEBUG_PRINT("initialize body. name: " << bodyName);
-
   nameLinkInfoMap.clear();
-  body = new Body;
   body->setName(bodyName);
   body->setModelName(bodyName);
 }
@@ -216,11 +216,55 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
   return 0;
 }
 
-static double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *data)
+// TODO solve two inverse kinematics at the same time
+int SimpleBodyGenerator::calcMultiInverseKinematics(const string &startLinkName, const string &endLinkName,
+                                               const Position &targetPose,
+                                               vector<double> &angleAll)
 {
-  vector<LinkData>* link_data = reinterpret_cast<vector<LinkData>*>(data);
+  DEBUG_PRINT("IK.");
+  cout << "ik is called" << endl;
+  // generate joint path
+  Link* startLink = body->rootLink();
+  Link* endLink = body->link(endLinkName);
+  if (! startLinkName.empty()) {
+    startLink = body->link(startLinkName);
+    if (!startLink) {
+      cerr << "link " << startLinkName << " not found." << endl;
+      return -1;
+    }
+  }
+  if (!endLink) {
+    cerr << "link " << endLinkName << " not found." << endl;
+    return -1;
+  }
+  DEBUG_PRINT("start link name: " << startLink->name());
+  DEBUG_PRINT("end link name: " << endLink->name());
+  JointPathPtr jointPath = getCustomJointPath(body, startLink, endLink);
+  for (int i = 0; i < jointPath->numJoints(); i++) {
+    DEBUG_PRINT("joint[" << i << "] name: " << jointPath->joint(i)->name());
+  }
+
+  // solve IK and set result
+  jointPath->calcForwardKinematics();
+  if (jointPath->calcInverseKinematics(targetPose)) {
+    DEBUG_PRINT("succeeded to solve IK.");
+    angleAll.resize(jointPath->numJoints());
+    for (int i = 0; i < jointPath->numJoints(); i++) {
+      DEBUG_PRINT("joint[" << i << "] angle: " << jointPath->joint(i)->q());
+      angleAll[i] = jointPath->joint(i)->q();
+    }
+  } else {
+    DEBUG_PRINT("failed to solve IK.");
+    return 1;
+  }
+  return 0;
+}
+
+double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *data)
+{
+  vector<TargetInfo>* link_data_list = reinterpret_cast<vector<TargetInfo>*>(data);
   double obj_val;
-  for (auto itr = link_data->begin(); itr != link_data->end(); ++itr) {
+  for (auto itr = link_data_list->begin(); itr != link_data_list->end(); ++itr) {
     if(!grad.empty()) {
       // TODO add jacobian
     }
@@ -261,14 +305,17 @@ int SimpleBodyGenerator::calcOptInverseKinematics(const string &startLinkName, c
 
   DEBUG_PRINT("start link name: " << startLink->name());
   DEBUG_PRINT("end link name: " << endLink->name());
-  
+
   JointPathPtr jointPathPtr = getCustomJointPath(body, startLink, endLink);
-  LinkData linkData = new LinkData;
-  linkData->startLinkName = startLinkName;
-  linkData->endLinkName = endLinkName;
-  linkData->targetPose = targetPose;
-  linkData->jointPathPtr = jointPathPtr;
-  linkDataList.push_back(linkData);
+  TargetInfo targetInfo;
+  targetInfo.startLinkName = startLinkName;
+  targetInfo.endLinkName = endLinkName;
+  targetInfo.targetPose = targetPose;
+  targetInfo.jointPathPtr = jointPathPtr;
+  targetInfoList.push_back(targetInfo);
+
+  // HOT FIX
+  int numJoints = jointPathPtr->numJoints();
 
   this->opt = nlopt::opt(nlopt::LN_COBYLA, jointPathPtr->numJoints()); // TODO apply multiple algorithm
 
@@ -278,15 +325,15 @@ int SimpleBodyGenerator::calcOptInverseKinematics(const string &startLinkName, c
   opt.set_lower_bounds(lb);
 
   // set min objective function
-  opt.set_min_objective(calcObjectiveFunc, linkDataList);
+  opt.set_min_objective(calcObjectiveFunc, &targetInfoList);
 
   // set initial values
-  vector<double> _q(jointPathPtr->numJoints, 0);
-  this->q = _q;
+  vector<double> q(numJoints, 0);
+  this->q = q;
 
   try {
     nlopt::result result = this->opt.optimize(this->q, this->minf);
-    std::cout << "minf is" << this->minf <<std::setprecision(5) << this->minf << std::endl;
+    std::cout << "minf is" << this->minf << std::setprecision(5) << this->minf << std::endl;
     // set results
     angleAll.resize(jointPathPtr->numJoints());
     for (int i = 0; i < jointPathPtr->numJoints(); i++) {
