@@ -59,8 +59,8 @@ namespace cnoid {
       string &startLinkName;
       string &endLinkName;
       Position &targetPose;
-      JointPathPtr jointPath;
-    }
+      JointPathPtr jointPathPtr;
+    };
 
     /** \brief Default constructor.
      *
@@ -121,12 +121,12 @@ namespace cnoid {
                               const Position &targetPose, vector<double> &angleAll);
 
     // Inverse kinematics using nlopt
-    int calcOptInverseKinematics(const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
+    int calcOptInverseKinematics(const string &startLinkName, const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
 
     // Objective function which should become minimum
-    static double calcObjectiveFunc(const string &endLinkName, const Position &targetPose, vector<double> &angleAll);
+    static double calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *data);
 
-    Body* body;
+    static Body* body;
 
   private:
     map<string, LinkInfo> nameLinkInfoMap;
