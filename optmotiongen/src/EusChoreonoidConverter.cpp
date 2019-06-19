@@ -145,7 +145,7 @@ extern "C" {
     return ret;
   }
 
-  double callCalcOptInverseKinematics(long convAddr, char *startLinkName, char *endLinkName,)
+  long callCalcOptInverseKinematics(long convAddr, char *startLinkName, char *endLinkName, double *pos, double *quat, double *angleAllArr)
   {
     SimpleBodyGenerator *pconv = (SimpleBodyGenerator *)convAddr;
     Position targetPose;
@@ -153,7 +153,7 @@ extern "C" {
     targetPose.translation() = Vector3(pos);
     targetPose.linear() = Quat(quat[0], quat[1], quat[2], quat[3]).normalized().toRotationMatrix();
     vector<double> angleAll;
-    int ret = pconv->calcOptInverseKinematics(string(endLinkName), targetPose, angleAll);
+    int ret = pconv->calcOptInverseKinematics(string(startLinkName), string(endLinkName), targetPose, angleAll);
     for (int i = 0; i < angleAll.size(); i++) {
       angleAllArr[i] = angleAll[i];
     }

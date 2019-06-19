@@ -220,41 +220,25 @@ int SimpleBodyGenerator::calcInverseKinematics(const string &startLinkName, cons
 double SimpleBodyGenerator::calcObjectiveFunc(const std::vector<double> &q, std::vector<double> &grad, void *data)
 {
   vector<LinkData>* link_data = reinterpret_cast<vector<LinkData>*>(data);
-
-  
-  
-  Link* startLink = body->rootLink();
-  Link* endLink = body->link(link_data->endLinkName);
-
-  if (! startLinkName.empty()) {
-    startLink = body->link(startLinkName);
-    if (!startLink) {
-      cerr << "link " << startLinkName << " not found." << endl;
-      return -1;
+  double obj_val;
+  for (auto itr = link_data->begin(); itr != link_data->end(); ++itr) {
+    if(!grad.empty()) {
+      // TODO add jacobian
     }
-  }
-  if (!endLink) {
-    cerr << "link " << endLinkName << " not found." << endl;
-    return -1;
-  }
+    // set joints
+    for (int i = 0; i < *itr.jointPath->numJoints(); ++i)
+      jointPath->joint(i)->q() = q[i];
 
-  if(!grad.empty()) {
-    // TODO add jacobian
+    *itr.jointPath->calcForwardKinematics();
+    Position attentionPose = body->link(*itr.endLinkName)->position();
+    Vector3 attentionP = attentionPose.translation();
+    Matrix3 attentionR = attentionPose.rotation();
+    Vector3 targetP = *itr.targetPose.translation();
+    Matrix3 targetR = *itr.targetPose.rotation();
+    // refer sugihara 2011 LM
+    obj_val += (attentionP - targetP).abs2() + omegaFromRot(targetR.transpose() * attentionR).abs2();
   }
-  JointPathPtr jointPath = getCustomJointPath(body, startLink, endLink);
-  for (int i = 0; i < jointPath->numJoints(); i++) {
-    DEBUG_PRINT("joint[" << i << "] name: " << jointPath->joint(i)->name());
-  }
-  // set joints
-  jointPath->calcForwardKinematics();
-  Position attentionPose = body->link(endLinkName)->position();
-
-  Vector3 attentionP = attentionPose.translation();
-  Vector3 targetP = targetPose.translation();
-  Matrix3 attentionR = attentionPose.rotation();
-  Matrix3 targetR = targetPose.rotation();
-  // refer sugihara 2011 LM
-  return (attentionP - targetP).abs2() + omegaFromRot(targetR.transpose() * attentionR).abs2(); // want to minimize this
+  return obj_val;
 }
 
 int SimpleBodyGenerator::calcOptInverseKinematics(const string &startLinkName, const string &endLinkName, const Position &targetPose, vector<double> &angleAll)
