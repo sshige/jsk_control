@@ -69,7 +69,7 @@ Return configuration-task instance
     (loop-num 100)
     (loop-num-min)
     (update-viewer-interval 1)
-    (print-status-interval 10)
+    (print-status-interval 1)
     )
    "
 Optimize

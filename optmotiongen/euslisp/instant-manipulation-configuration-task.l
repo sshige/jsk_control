@@ -1102,19 +1102,29 @@ Print status.
    (warning-message 9 "|torque-task|=~a~%" (norm (send self :torque-task-value :update? nil)))
    (warning-message 9 "|posture-task|=~a~%" (norm (send self :posture-task-value :update? nil)))
    )
+  ;; (:_get-contact-index-from-limb ;; used in trajectory-configuration-task
+  ;;  (&key (limb))
+  ;;  (position-if
+  ;;   #'(lambda (att-trg-coords-list)
+  ;;       ;; if target-coords is contained in act-react-pair-list, exclude the contact
+  ;;       (if (not (find (elt att-trg-coords-list 1) (mapcar #'(lambda (x) (elt x 0)) _act-react-pair-list)))
+  ;;           (some #'(lambda (limb-link)
+  ;;                     (string= (send (send (elt att-trg-coords-list 0) :parent) :name) (send limb-link :name)))
+  ;;                 (send _robot-env :robot limb))
+  ;;         ))
+  ;;   (mapcar
+  ;;    #'list
+  ;;    _contact-attention-coords-list
+  ;;    _contact-target-coords-list)
+  ;;   ))
   (:_get-contact-index-from-limb ;; used in trajectory-configuration-task
    (&key (limb))
    (position-if
-    #'(lambda (att-trg-coords-list)
-        ;; if target-coords is contained in act-react-pair-list, exclude the contact
-        (if (not (find (elt att-trg-coords-list 1) (mapcar #'(lambda (x) (elt x 0)) _act-react-pair-list)))
-            (some #'(lambda (limb-link)
-                      (string= (send (send (elt att-trg-coords-list 0) :parent) :name) (send limb-link :name)))
-                  (send _robot-env :robot limb))
-          ))
-    (mapcar
-     #'list
-     _contact-attention-coords-list
-     _contact-target-coords-list)
+    #'(lambda (att-coords)
+        (some #'(lambda (limb-link)
+                  (string= (send (send att-coords :parent) :name) (send limb-link :name)))
+              (send _robot-env :robot limb))
+        )
+    _contact-attention-coords-list
     ))
   )
