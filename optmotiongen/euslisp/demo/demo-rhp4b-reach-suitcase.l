@@ -377,6 +377,9 @@
   (setq *sqp-opt*
         (instance sqp-optimization :init
                   :config-task *instant-manip-config-task*
+                  :convergence-check-func
+                  #'(lambda (sqp)
+                      (if (< (norm (send (send sqp :config-task) :task-value)) 1) t nil))
                   ;; :post-process-func
                   ;; #'(lambda (sqp)
                   ;;     (when (= (mod (send sqp :iteration) 20) 0)

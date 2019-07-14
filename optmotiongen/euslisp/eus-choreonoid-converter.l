@@ -132,6 +132,14 @@
   :integer
   )
 
+;; long callCalcInverseKinematics(long convAddr, char *startLinkName, char *endLinkName, double *pos, double *quat, double *angleAllArr)
+(defforeign calc-inverse-kinematics
+  *eus-choreonoid-converter-lib*
+  "callCalcInverseKinematics"
+  ()
+  :integer
+  )
+
 ;; long callCalcOptInverseKinematics(long convAddr, char *startLinkName, char *endLinkName, double *pos, double *quat, double *angleAllArr)
 (defforeign calc-opt-inverse-kinematics
   *eus-choreonoid-converter-lib*
@@ -296,7 +304,33 @@ Solve inverse-kinematics with choreonoid model. Euslisp model does not change.
           nil
           ))
    )
-  (:cnoid-weight
+  (:cnoid-dual-inverse-kinematics ;; give two targets, and solve ik at the same time
+   (target-coords
+    &key
+    (move-target-link)
+    (root-link (car (send self :links)))
+    (av-buffer (make-array (length joint-list) :element-type :float))
+    )
+   "
+Solve inverse-kinematics with choreonoid model. Euslisp model does not change.
+   "
+   (cond ((= (cnoid::calc-dual-inverse-kinematics
+              (send self :get :cnoid-model)
+              (string (send root-link :name))
+              (string (send move-target-link :name))
+              (scale 1e-3 (send target-coords :worldpos))
+              (matrix2quaternion (send target-coords :worldrot))
+              av-buffer)
+             0)
+          (dotimes (i (length joint-list))
+            (setf (elt av-buffer i) (rad2deg (elt av-buffer i))))
+          av-buffer
+          )
+         (t
+          nil
+          ))
+   )
+    (:cnoid-weight
    (&key
     (mass-buffer (float-vector 0))
     (com-buffer (float-vector 0 0 0))
