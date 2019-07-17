@@ -133,7 +133,7 @@ double* solve_qpoases_qp_with_hotstart_common (double* ret,
   Options options;
   options.printLevel = print_level;
   example->setOptions( options );
-  int nWSR = 10000;
+  int nWSR = 30000;
   returnValue status;
   if (is_initial) {
     /* Solve first QP/LP. */
@@ -229,7 +229,7 @@ double* solve_qpoases_sqp_with_hotstart_common (double* ret,
   Options options;
   options.printLevel = print_level;
   example->setOptions( options );
-  int nWSR = 10000;
+  int nWSR = 30000;
   returnValue status;
   if (is_initial) {
     /* Solve first QP/LP. */
