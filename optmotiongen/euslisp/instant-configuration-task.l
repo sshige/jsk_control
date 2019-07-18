@@ -2250,12 +2250,26 @@ update inequality matrix $\bm{C}_{\mathit{col},\theta}, \bm{C}_{\mathit{col,\phi
        (let* ((pair (elt _collision-pair-list i))
               (b1 (elt pair 0))
               (b2 (elt pair 1))
-              (col-ret (pqp-collision-distance b1 b2 :qsize 2))
+              (col-ret
+               (cond ((functionp 'bt-collision-distance)
+                      (bt-collision-distance b1 b2)
+                      )
+                     (t
+                      (pqp-collision-distance b1 b2 :qsize 2)
+                      ))
+               )
               (p1 (elt col-ret 1))
               (p2 (elt col-ret 2))
               (c1 (make-cascoords :pos p1 :parent b1))
               (c2 (make-cascoords :pos p2 :parent b2))
-              (dir (normalize-vector (v- p1 p2)))
+              (dir
+               (cond ((functionp 'bt-collision-distance)
+                      (scale (if (> dist 0) 1 -1) (normalize-vector (v- p1 p2)))
+                      )
+                     (t
+                      (normalize-vector (v- p1 p2))
+                      ))
+               )
               (dist-margin (elt _collision-distance-margin-list i))
               (dist (- (* 1e-3 (elt col-ret 0)) dist-margin)) ;; [m]
               (variant-mat-vector
