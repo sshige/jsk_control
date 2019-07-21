@@ -734,25 +734,44 @@ return $\bm{d}_{\hat{w}_{\mathit{obj}}} := \begin{pmatrix}\bm{d}_{w_{\mathit{obj
 
 return $\bm{C}_{\mathit{var}} := \begin{pmatrix}\bm{C}_{\theta}&&&\\&\bm{C}_{\hat{w}}&&\\&&\bm{C}_{\hat{w}_{\mathit{obj}}}&\\&&&\bm{C}_{\tau}\end{pmatrix} \in \mathbb{R}^{N_{\mathit{var\mathchar`-ineq}} \times \mathit{dim}(\bm{q}_{\mathit{var}})}$
    "
-   (concatenate-matrix-diagonal
-    (send self :theta-inequality-constraint-matrix :update? update?)
-    (send self :wrench-inequality-constraint-matrix :update? update?)
-    (send self :wrench-obj-inequality-constraint-matrix :update? update?)
-    (send self :torque-inequality-constraint-matrix :update? update?)
-    )
+   ;; HOT FIX for soft margin
+   (if _soft-collision-margin-scale
+       (concatenate-matrix-diagonal
+        (send self :theta-inequality-constraint-matrix :update? update?)
+        (send self :wrench-inequality-constraint-matrix :update? update?)
+        (send self :wrench-obj-inequality-constraint-matrix :update? update?)
+        (send self :torque-inequality-constraint-matrix :update? update?)
+        (make-matrix (length _collision-pair-list) (length _collision-pair-list))
+        )
+     (concatenate-matrix-diagonal
+        (send self :theta-inequality-constraint-matrix :update? update?)
+        (send self :wrench-inequality-constraint-matrix :update? update?)
+        (send self :wrench-obj-inequality-constraint-matrix :update? update?)
+        (send self :torque-inequality-constraint-matrix :update? update?)
+        ))
    )
   (:variant-config-inequality-constraint-vector
    (&key (update? t))
    "
 return $\bm{d}_{\mathit{var}} := \begin{pmatrix}\bm{d}_{\theta}\\\bm{d}_{\hat{w}}\\\bm{d}_{\hat{w}_{\mathit{obj}}}\\\bm{d}_{\tau}\end{pmatrix} \in \mathbb{R}^{N_{\mathit{var\mathchar`-ineq}}}$
    "
-   (concatenate
-    float-vector
-    (send self :theta-inequality-constraint-vector :update? update?)
-    (send self :wrench-inequality-constraint-vector :update? update?)
-    (send self :wrench-obj-inequality-constraint-vector :update? update?)
-    (send self :torque-inequality-constraint-vector :update? update?)
-    )
+   ;; HOT FIX for soft margin
+   (if _soft-collision-margin-scale
+       (concatenate
+        float-vector
+        (send self :theta-inequality-constraint-vector :update? update?)
+        (send self :wrench-inequality-constraint-vector :update? update?)
+        (send self :wrench-obj-inequality-constraint-vector :update? update?)
+        (send self :torque-inequality-constraint-vector :update? update?)
+        (make-array (length _collision-pair-list) :element-type float-vector :initial-element 0)
+        )
+     (concatenate
+        float-vector
+        (send self :theta-inequality-constraint-vector :update? update?)
+        (send self :wrench-inequality-constraint-vector :update? update?)
+        (send self :wrench-obj-inequality-constraint-vector :update? update?)
+        (send self :torque-inequality-constraint-vector :update? update?)
+        ))
    )
   )
 

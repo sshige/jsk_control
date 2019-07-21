@@ -51,7 +51,7 @@ double* solve_qpoases_qp_common (double* ret,
   options.printLevel = print_level;
   example.setOptions( options );
   /* Solve first QP/LP. */
-  int nWSR = 10000;
+  int nWSR = 30000;
   returnValue status = example.init( H,g,A,lb,ub,lbA,ubA, nWSR );
   //printf("%d %d %d\n", print_level, PL_NONE, PL_MEDIUM);
   ret_status[0] = getSimpleStatus(status, (print_level != PL_NONE)? BT_TRUE:BT_FALSE);

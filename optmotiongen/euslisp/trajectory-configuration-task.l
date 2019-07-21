@@ -20,6 +20,7 @@
           (_norm-regular-scale-offset "$k_{\mathit{off}}$")
           (_adjacent-regular-scale-list "$k^{(1)}_{\mathit{adj}},k^{(2)}_{\mathit{adj}},\cdots,k^{(L-1)}_{\mathit{adj}}$")
           (_torque-regular-scale "$k_{\mathit{trq}}$")
+          (_soft-collision-margin-scale)
           ;; buffer
           (_task-jacobi "buffer for $\frac{\partial \bm{e}}{\partial \bm{q}}$")
           )
@@ -76,6 +77,7 @@ $\bm{e}^{(l)}(\bm{q}_{\mathit{var}}^{(l)}, \bm{q}_{\mathit{invar}}) \ (l=1,2,\cd
     (adjacent-regular-scale 5e-3)
     (adjacent-regular-scale-list)
     (torque-regular-scale 1e-3)
+    (soft-collision-margin-scale)
     )
    "
 Initialize instance
@@ -92,6 +94,7 @@ Initialize instance
                 (make-list (1- (length instant-config-task-list)) :initial-element adjacent-regular-scale))
           ))
    (setq _torque-regular-scale torque-regular-scale)
+   (setq _soft-collision-margin-scale soft-collision-margin-scale)
    ;; sub methods
    (send self :_initialize-number)
    (send self :_initialize-dimension)
@@ -728,6 +731,24 @@ return $\bm{v}_{trq} \in \mathbb{R}^{dim(\bm{q})}$
      )
    (send self :get :torque-regular-vector)
    )
+  (:soft-margin-coeff-vector ;; minimize soft margin
+   (&key (update? nil))
+   (when (or update? (not (send self :get :soft-margin-coeff-vector)))
+     ;; HOT FIX, hard coding
+     (send self :put :soft-margin-coeff-vector
+           (make-array _dim-config :element-type float-vector :initial-element 0))
+     (let* ((idx 0))
+       (dolist (config-task _instant-config-task-list)
+         (copy-block-vec (send self :get :soft-margin-coeff-vector)
+                          (make-array (send config-task :num-collision)
+                                      :element-type float-vector :initial-element 1)
+                          (- (+ idx (send config-task :dim-variant-config))
+                             (send config-task :num-collision)))
+          (incf idx (send config-task :dim-variant-config)))
+        )
+     )
+   (send self :get :soft-margin-coeff-vector)
+   )
   (:regular-matrix
    ()
    "
@@ -757,9 +778,16 @@ return $\bm{W}_{\mathit{reg}} \in \mathbb{R}^{\mathit{dim}(\bm{q}) \times \mathi
 
 return $\bm{v}_{\mathit{reg}}\in \mathbb{R}^{\mathit{dim}(\bm{q})}$
    "
-   (v+
-    (send self :adjacent-regular-vector)
-    (scale _torque-regular-scale (send self :torque-regular-vector)))
+   (if _soft-collision-margin-scale
+       (v+
+        (send self :adjacent-regular-vector)
+        (scale _torque-regular-scale (send self :torque-regular-vector))
+        (scale _soft-collision-margin-scale (send self :soft-margin-coeff-vector)) ;; for convenience
+        )
+     (v+
+        (send self :adjacent-regular-vector)
+        (scale _torque-regular-scale (send self :torque-regular-vector))
+        )
    )
   )
 

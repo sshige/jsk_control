@@ -60,6 +60,7 @@
           (_external-coords-list "$\{T_1^{\mathit{ex}}, T_2^{\mathit{ex}}, \cdots, T_{N_{\mathit{ex}}}^{\mathit{ex}} \}$")
           (_collision-pair-list "list of bodyset-link or body pair")
           (_collision-distance-margin-list "list of collision distance margin")
+          (_soft-collision-margin-scale "soft margin for collision avoidance, qp error -2 may be avoided by setting this weight")
           (_only-kinematics? "whether to consider only kinematics or not")
           ;; buffer
           (_variant-task-jacobi "buffer for $\frac{\partial \bm{e}}{\partial \bm{q}_{\mathit{var}}}$")
@@ -184,6 +185,7 @@ $\bm{\hat{w}}$は次式のように，全接触部位でのワールド座標系
     (collision-pair-list)
     (collision-distance-margin 0.01) ;; [m]
     (collision-distance-margin-list) ;; [m]
+    (soft-collision-margin-scale)
     (kin-scale 1.0)
     (kin-scale-list)
     (kin-scale-mat-list)
@@ -220,6 +222,7 @@ Initialize instance
    (setq _collision-distance-margin-list
          (or collision-distance-margin-list
              (make-list (length _collision-pair-list) :initial-element collision-distance-margin)))
+   (setq _soft-collision-margin-scale soft-collision-margin-scale)
    (cond (kin-scale-mat-list
           (setq _kin-scale-mat-list kin-scale-mat-list)
           )
@@ -281,6 +284,9 @@ Initialize instance
    (setq _dim-phi _num-invariant-joint)
    (setq _dim-variant-config (+ _dim-theta _dim-wrench _dim-torque))
    (setq _dim-invariant-config _dim-phi)
+   (if _soft-collision-margin-scale
+         (setq _dim-variant-config (+ _dim-theta _dim-wrench _dim-torque (length _collision-pair-list)))
+         )
    (setq _dim-config (+ _dim-variant-config _dim-invariant-config))
    (cond (_only-kinematics?
           (setq _dim-task (+ (* 6 _num-kin) _num-posture-joint))
@@ -1899,24 +1905,42 @@ return $\bm{d_{\phi}} := \begin{pmatrix} \bm{\phi}_{\mathit{min}} - \bm{\phi} \\
 
 return $\bm{C}_{\mathit{var}} := \begin{pmatrix}\bm{C}_{\theta}&&\\&\bm{C}_{\hat{w}}&\\&&\bm{C}_{\tau}\end{pmatrix} \in \mathbb{R}^{N_{\mathit{var\mathchar`-ineq}} \times \mathit{dim}(\bm{q}_{\mathit{var}})}$
    "
-   (concatenate-matrix-diagonal
-    (send self :theta-inequality-constraint-matrix :update? update?)
-    (send self :wrench-inequality-constraint-matrix :update? update?)
-    (send self :torque-inequality-constraint-matrix :update? update?)
-    )
+   ;; HOT FIX for soft margin
+   (if _soft-collision-margin-scale
+       (concatenate-matrix-diagonal
+        (send self :theta-inequality-constraint-matrix :update? update?)
+        (send self :wrench-inequality-constraint-matrix :update? update?)
+        (send self :torque-inequality-constraint-matrix :update? update?)
+        ;; (unit-matrix (length _collision-pair-list)) ;; should check carefully
+        (make-matrix (length _collision-pair-list) (length _collision-pair-list))
+        )
+     (concatenate-matrix-diagonal
+      (send self :theta-inequality-constraint-matrix :update? update?)
+      (send self :wrench-inequality-constraint-matrix :update? update?)
+      (send self :torque-inequality-constraint-matrix :update? update?)
+      ))
    )
   (:variant-config-inequality-constraint-vector
    (&key (update? t))
    "
 return $\bm{d}_{\mathit{var}} := \begin{pmatrix}\bm{d}_{\theta}\\\bm{d}_{\hat{w}}\\\bm{d}_{\tau}\end{pmatrix} \in \mathbb{R}^{N_{\mathit{var\mathchar`-ineq}}}$
    "
-   (concatenate
-    float-vector
-    (send self :theta-inequality-constraint-vector :update? update?)
-    (send self :wrench-inequality-constraint-vector :update? update?)
-    (send self :torque-inequality-constraint-vector :update? update?)
-    )
-   )
+   ;; HOT FIX for soft margin
+   (if _soft-collision-margin-scale
+       (concatenate
+        float-vector
+        (send self :theta-inequality-constraint-vector :update? update?)
+        (send self :wrench-inequality-constraint-vector :update? update?)
+        (send self :torque-inequality-constraint-vector :update? update?)
+        (make-array (length _collision-pair-list) :element-type float-vector :initial-element 0)
+        )
+     (concatenate
+        float-vector
+        (send self :theta-inequality-constraint-vector :update? update?)
+        (send self :wrench-inequality-constraint-vector :update? update?)
+        (send self :torque-inequality-constraint-vector :update? update?)
+        ))
+     )
   (:invariant-config-inequality-constraint-matrix
    (&key (update? nil))
    "
@@ -2157,6 +2181,21 @@ return $\frac{\bm{\tau}}{\bm{\tau}_{\mathit{max}}} := \begin{pmatrix} \frac{\tau
         _torque-vector
         (send self :torque-max-vector))
    )
+  (:soft-margin-coeff-vector ;; minimize soft margin
+   (&key (update? nil))
+   (when (or update? (not (send self :get :soft-margin-coeff-vector)))
+     ;; HOT FIX, hard coding
+     (send self :set :soft-margin-coeff-vector
+           (concatenate float-vector
+                        (make-array _dim-variant-config
+                                    :element-type float-vector :initial-element 0)
+                        (make-array (length _collision-pair-list)
+                                    :element-type float-vector :initial-element 1)
+                        (make-array (+ _dim-phi)
+                                    :element-type float-vector :initial-element 0)
+                        )))
+   (send self :get :soft-margin-coeff-vector)
+   )
   (:regular-matrix
    ()
    "
@@ -2172,7 +2211,7 @@ return $\bm{W}_{\mathit{reg}} \in \mathbb{R}^{\mathit{dim}(\bm{q}) \times \mathi
     (scale-matrix _torque-regular-scale (send self :torque-regular-matrix))
     (send self :_dim-config-buf-matrix)
     ))
-  (:regular-vector
+  (:regular-vector ;; soft margin is included here for convenience
    ()
    "
 \begin{eqnarray}
@@ -2181,7 +2220,13 @@ return $\bm{W}_{\mathit{reg}} \in \mathbb{R}^{\mathit{dim}(\bm{q}) \times \mathi
 
 return $\bm{v}_{\mathit{reg}} \in \mathbb{R}^{\mathit{dim}(\bm{q})}$
    "
-   (scale _torque-regular-scale (send self :torque-regular-vector))
+   (if _soft-collision-margin-scale
+       (concatenate float-vector
+                    (scale _torque-regular-scale (send self :torque-regular-vector))
+                    (scale _soft-collision-margin-scale (send self :soft-margin-coeff-vector))
+                    )
+     (scale _torque-regular-scale (send self :torque-regular-vector))
+     )
    )
   )
 
@@ -2262,6 +2307,8 @@ update inequality matrix $\bm{C}_{\mathit{col},\theta}, \bm{C}_{\mathit{col,\phi
               (p2 (elt col-ret 2))
               (c1 (make-cascoords :pos p1 :parent b1))
               (c2 (make-cascoords :pos p2 :parent b2))
+              (dist-margin (elt _collision-distance-margin-list i))
+              (dist (- (* 1e-3 (elt col-ret 0)) dist-margin)) ;; [m]
               (dir
                (cond ((functionp 'bt-collision-distance)
                       (scale (if (> dist 0) 1 -1) (normalize-vector (v- p1 p2)))
@@ -2270,8 +2317,6 @@ update inequality matrix $\bm{C}_{\mathit{col},\theta}, \bm{C}_{\mathit{col,\phi
                       (normalize-vector (v- p1 p2))
                       ))
                )
-              (dist-margin (elt _collision-distance-margin-list i))
-              (dist (- (* 1e-3 (elt col-ret 0)) dist-margin)) ;; [m]
               (variant-mat-vector
                (transform
                 dir
@@ -2323,7 +2368,32 @@ update inequality matrix $\bm{C}_{\mathit{col},\theta}, \bm{C}_{\mathit{col,\phi
            (apply #'matrix invariant-mat-vector-list))
      (setq _collision-inequality-constraint-vector
            (scale -1 (coerce dist-list float-vector)))
-     ))
+     ;; HOT FIX for soft sollision ;; should check carefully
+     (if _soft-collision-margin-scale
+         (progn
+           (assert
+            (= (_collision-inequality-constraint-vector 0)
+               (length _collision-pair-list))
+            (format nil "column of _collision-pair-list should be the same as length of _collision-pair-list ~%"))
+           (assert
+            (= (_collision-inequality-constraint-vector 1) _dim-theta)
+            (format nil "row of _collision-pair-list should be the same as _dim-theta ~%"))
+           (setq _collision-theta-inequality-constraint-matrix
+                 (concatenate-matrix-row
+                  (concatenate-matrix-column
+                   _collision-theta-inequality-constraint-matrix
+                   (unit-matrix (length _collision-pair-list)))
+                  (concatenate-matrix-column
+                   (make-matrix (length _collision-pair-list) _dim-theta)
+                   (unit-matrix (length _collision-pair-list)))
+                  ))
+           (setq _collision-inequality-constraint-vector
+                 (concatenate float-vector
+                              _collision-inequality-constraint-vector
+                              (make-array (length _collision-pair-list) :element-type :float :initial-element 0)))
+           ))
+     )
+   )
   (:collision-theta-inequality-constraint-matrix
    ()
    "
