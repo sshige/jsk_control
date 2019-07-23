@@ -110,6 +110,8 @@ Initialize instance
    (setq _dim-config (+ _dim-variant-config _dim-invariant-config))
    (setq _dim-task (apply #'+ (send-all _instant-config-task-list :dim-task)))
    )
+  (:soft-collision-margin-scale
+   _soft-collision-margin-scale)
   (:instant-config-task-list
    ()
    "
@@ -740,7 +742,7 @@ return $\bm{v}_{trq} \in \mathbb{R}^{dim(\bm{q})}$
      (let* ((idx 0))
        (dolist (config-task _instant-config-task-list)
          (copy-block-vec (send self :get :soft-margin-coeff-vector)
-                          (make-array (send config-task :num-collision)
+                         (make-array (send config-task :num-collision)
                                       :element-type float-vector :initial-element 1)
                           (- (+ idx (send config-task :dim-variant-config))
                              (send config-task :num-collision)))
@@ -785,9 +787,30 @@ return $\bm{v}_{\mathit{reg}}\in \mathbb{R}^{\mathit{dim}(\bm{q})}$
         (scale _soft-collision-margin-scale (send self :soft-margin-coeff-vector)) ;; for convenience
         )
      (v+
-        (send self :adjacent-regular-vector)
+      (send self :adjacent-regular-vector)
         (scale _torque-regular-scale (send self :torque-regular-vector))
         )
+     )
+   )
+  (:state-min-vector
+   ()
+   (let*
+       ((state-min-vector))
+     (dolist (config-task _instant-config-task-list)
+       (setq state-min-vector
+             (concatenate float-vector
+                          state-min-vector
+                          (make-array (- (send config-task :dim-variant-config)
+                                         (send config-task :num-collision))
+                                      :element-type float-vector :initial-element -1e35)
+                          (make-array (send config-task :num-collision)
+                                      :element-type float-vector :initial-element 0)
+                          )))
+     (concatenate float-vector
+                  state-min-vector
+                  (make-array _dim-invariant-config
+                              :element-type float-vector :initial-element -1e35))
+     )
    )
   )
 

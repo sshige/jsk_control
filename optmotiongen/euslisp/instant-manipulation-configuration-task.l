@@ -124,6 +124,8 @@ Initialize instance
    (send-super :_initialize-dimension)
    (setq _dim-wrench-obj (* 6 _num-contact-obj))
    (setq _dim-variant-config (+ _dim-theta _dim-wrench _dim-wrench-obj _dim-torque))
+   (if _soft-collision-margin-scale
+       (setq _dim-variant-config (+ _dim-theta _dim-wrench _dim-wrench-obj _dim-torque _num-collision)))
    (setq _dim-config (+ _dim-variant-config _dim-invariant-config))
    (setq _dim-task (+ (* 6 _num-kin) 3 3 3 3 _num-drive-joint _num-posture-joint))
    )
@@ -186,6 +188,7 @@ return $\bm{q_{\mathit{var}}} := \begin{pmatrix} \bm{\theta} \\ \bm{\hat{w}} \\ 
     _wrench-vector
     _wrench-obj-vector
     _torque-vector
+    _soft-margin-vector
     )
    )
   (:config-vector

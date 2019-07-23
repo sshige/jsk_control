@@ -16,6 +16,7 @@
           (_theta-vector "$\bm{\theta}$ [rad] [m]")
           (_wrench-vector "$\bm{\hat{w}}$ [N] [Nm]")
           (_torque-vector "$\bm{\tau}$ [Nm]")
+          (_soft-margin-vector "$\bm{\varepsilon}$")
           (_phi-vector "$\bm{\phi}$ [rad] [m]")
           ;; number
           (_num-kin "$N_{\mathit{kin}} := |\mathcal{T}^{\mathit{kin\mathchar`-trg}}| = |\mathcal{T}^{\mathit{kin\mathchar`-att}}|$")
@@ -274,6 +275,8 @@ Initialize instance
    (setq _theta-vector (send self :_get-theta-from-model))
    (setq _wrench-vector (make-array (* 6 _num-contact) :element-type :float))
    (setq _torque-vector (make-array _num-drive-joint :element-type :float))
+   (if _soft-collision-margin-scale
+       (setq _soft-margin-vector (make-array _num-collision :element-type :float)))
    (setq _phi-vector (send self :_get-phi-from-model))
    )
   (:_initialize-dimension
@@ -281,12 +284,13 @@ Initialize instance
    (setq _dim-theta _num-variant-joint)
    (setq _dim-wrench (* 6 _num-contact))
    (setq _dim-torque _num-drive-joint)
+   (setq _dim-soft-margin _num-collision)
    (setq _dim-phi _num-invariant-joint)
    (setq _dim-variant-config (+ _dim-theta _dim-wrench _dim-torque))
    (setq _dim-invariant-config _dim-phi)
    (if _soft-collision-margin-scale
-         (setq _dim-variant-config (+ _dim-theta _dim-wrench _dim-torque (length _collision-pair-list)))
-         )
+       (setq _dim-variant-config (+ _dim-theta _dim-wrench _dim-torque _dim-soft-margin))
+     )
    (setq _dim-config (+ _dim-variant-config _dim-invariant-config))
    (cond (_only-kinematics?
           (setq _dim-task (+ (* 6 _num-kin) _num-posture-joint))
@@ -351,6 +355,8 @@ return $\bm{\tau}$
    "
    _torque-vector
    )
+  (:soft-collision-margin-scale
+   _soft-collision-margin-scale)
   (:phi
    ()
    "
@@ -464,6 +470,7 @@ return $\bm{q_{\mathit{var}}} := \begin{pmatrix} \bm{\theta} \\ \bm{\hat{w}} \\ 
     _theta-vector
     _wrench-vector
     _torque-vector
+    _soft-margin-vector
     )
    )
   (:invariant-config-vector
@@ -2372,25 +2379,17 @@ update inequality matrix $\bm{C}_{\mathit{col},\theta}, \bm{C}_{\mathit{col,\phi
      (if _soft-collision-margin-scale
          (progn
            (assert
-            (= (_collision-inequality-constraint-vector 0)
-               (length _collision-pair-list))
-            (format nil "column of _collision-pair-list should be the same as length of _collision-pair-list ~%"))
+            (= (array-dimension _collision-theta-inequality-constraint-matrix 0)
+               _num-collision)
+            (format nil "row of _collision-theta-inequality-constraint-matrix should be the same as length of _collision-pair-list ~%"))
            (assert
-            (= (_collision-inequality-constraint-vector 1) _dim-theta)
-            (format nil "row of _collision-pair-list should be the same as _dim-theta ~%"))
+            (= (array-dimension _collision-theta-inequality-constraint-matrix 1) _dim-theta)
+            (format nil "column of _collision-theta-inequality-constraint-matrix  should be the same as _dim-theta ~%"))
            (setq _collision-theta-inequality-constraint-matrix
                  (concatenate-matrix-row
-                  (concatenate-matrix-column
-                   _collision-theta-inequality-constraint-matrix
-                   (unit-matrix (length _collision-pair-list)))
-                  (concatenate-matrix-column
-                   (make-matrix (length _collision-pair-list) _dim-theta)
-                   (unit-matrix (length _collision-pair-list)))
-                  ))
-           (setq _collision-inequality-constraint-vector
-                 (concatenate float-vector
-                              _collision-inequality-constraint-vector
-                              (make-array (length _collision-pair-list) :element-type :float :initial-element 0)))
+                  _collision-theta-inequality-constraint-matrix
+                  (unit-matrix (length _collision-pair-list)))
+                 )
            ))
      )
    )
