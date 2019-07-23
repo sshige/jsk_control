@@ -31,6 +31,7 @@
           (_dim-theta "$\mathit{dim}(\bm{\theta}) = N_\mathit{var\mathchar`-joint}$")
           (_dim-wrench "$\mathit{dim}(\bm{\hat{w}}) = 6 N_{\mathit{cnt}}$")
           (_dim-torque "$\mathit{dim}(\bm{\tau}) = N_\mathit{drive\mathchar`-joint}$")
+          (_dim-soft-margin)
           (_dim-phi "$\mathit{dim}(\bm{\phi}) = N_\mathit{invar\mathchar`-joint}$")
           (_dim-variant-config "$\mathit{dim}(\bm{q}_{\mathit{var}})$")
           (_dim-invariant-config "$\mathit{dim}(\bm{q}_{\mathit{invar}})$")

@@ -162,33 +162,7 @@ Return status of sqp optimization.
    (setq _task-jacobian (send _config-task :task-jacobian))
    ;; solve QP
    (setq _qp-status (float-vector 0))
-   (if _config-task :soft-collision-margin-scale
-     (setq _qp-retval
-           (apply #'solve-qpoases-qp
-                  :status _qp-status
-                  :initial-state
-                  (make-array (send _config-task :dim-config) :element-type :float :initial-element 0)
-                  :eval-weight-matrix
-                  (m+ (m* (transpose _task-jacobian) _task-jacobian _dim-config-buf-matrix)
-                      (send _config-task :regular-matrix)
-                      _dim-config-buf-matrix)
-                  :eval-coeff-vector
-                  (v+ (transform (transpose _task-jacobian) _task-value)
-                      (send _config-task :regular-vector))
-                  :equality-matrix
-                  (send _config-task :config-equality-constraint-matrix)
-                  :equality-vector
-                  (send _config-task :config-equality-constraint-vector)
-                  :inequality-matrix
-                  (send _config-task :config-inequality-constraint-matrix)
-                  :inequality-min-vector
-                  (send _config-task :config-inequality-constraint-vector)
-                  :state-min-vector
-                  (send _config-task :state-min-vector)
-                  :solve-qp-mode :sqp-with-hotstart
-                  :debug t
-                  ))
-     (setq _qp-retval
+   (setq _qp-retval
          (solve-qp-with-transformation-until-no-error
           :status _qp-status
           :initial-state
@@ -208,9 +182,13 @@ Return status of sqp optimization.
           (send _config-task :config-inequality-constraint-matrix)
           :inequality-min-vector
           (send _config-task :config-inequality-constraint-vector)
+          :state-min-vector
+          (send _config-task :state-min-vector)
           :solve-qp-mode :sqp-with-hotstart
           :debug t
-          )))
+          ))
+   (warning-message 2 "_qp-status is ~a ~%" _qp-status)
+   (warning-message 2 "_qp-retval is ~a ~%" _qp-retval)
    (setq _qp-int-status (round (elt _qp-status 0)))
    ;; update config
    (unless (float-vector-p _qp-retval)

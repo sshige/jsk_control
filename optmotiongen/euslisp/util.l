@@ -412,7 +412,8 @@ Override to support zero row matrix.
             (&key (initial-state) &allow-other-keys)
             (let* ((state-dim (length initial-state))
                    (trans-mat-unit
-                    (rotation-matrix (random 2pi) (random-vector)))
+                    (rotation-matrix (random 0) (random-vector))) ;;super hot fix
+                    ;;(rotation-matrix (random 2pi) (random-vector)))
                    (trans-mat
                     (apply #'concatenate-matrix-diagonal
                            (append (make-list (/ state-dim 3) :initial-element trans-mat-unit)
@@ -426,7 +427,7 @@ Override to support zero row matrix.
            (first-trial? t)
            )
       (setq tmp-status (float-vector 0))
-      (dotimes (i 10)
+      (dotimes (i 3)
         (setq ret
               (apply #'solve-qp-with-transformation
                      :transformation-matrix (if first-trial? nil (apply #'make-transformation-matrix args))
@@ -457,6 +458,7 @@ Override to support zero row matrix.
    (equality-vector)
    (inequality-matrix)
    (inequality-min-vector)
+   (state-min-vector)
    (solve-qp-mode)
    (debug) ;; not debug? for compatibility
    )
@@ -490,6 +492,7 @@ Override to support zero row matrix.
                    :equality-vector equality-vector
                    :inequality-matrix transed-inequality-matrix
                    :inequality-min-vector inequality-min-vector
+                   :state-min-vector state-min-vector ;;hot fix
                    :solve-qp-mode solve-qp-mode
                    :debug debug
                    ))

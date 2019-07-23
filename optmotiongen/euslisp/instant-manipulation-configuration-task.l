@@ -891,11 +891,18 @@ return $\bm{b}_{\mathit{act\mathchar`-react}} \in \mathbb{R}^{6 N_{\mathit{act\m
 
 return $\bm{A}_{\mathit{var}} := \begin{pmatrix}\bm{O} & \bm{A}_{\mathit{act\mathchar`-react}} & \bm{O}\end{pmatrix} \in \mathbb{R}^{6 N_{\mathit{act\mathchar`-react}} \times \mathit{dim}(\bm{q}_{\mathit{var}})}$
    "
-   (concatenate-matrix-row
-    (make-matrix (* 6 _num-act-react) _dim-theta)
-    (send self :act-react-equality-constraint-matrix :update? update?)
-    (make-matrix (* 6 _num-act-react) _dim-torque)
-    )
+   (if _soft-collision-margin-scale
+       (concatenate-matrix-row
+        (make-matrix (* 6 _num-act-react) _dim-theta)
+        (send self :act-react-equality-constraint-matrix :update? update?)
+        (make-matrix (* 6 _num-act-react) _dim-torque)
+        (make-matrix (* 6 _num-act-react) _dim-soft-margin)
+        )
+     (concatenate-matrix-row
+      (make-matrix (* 6 _num-act-react) _dim-theta)
+      (send self :act-react-equality-constraint-matrix :update? update?)
+      (make-matrix (* 6 _num-act-react) _dim-torque)
+      ))
    )
   (:variant-config-equality-constraint-vector
    (&key (update? t))
