@@ -187,8 +187,8 @@ Return status of sqp optimization.
           :solve-qp-mode :sqp-with-hotstart
           :debug t
           ))
-   (warning-message 2 "_qp-status is ~a ~%" _qp-status)
-   (warning-message 2 "_qp-retval is ~a ~%" _qp-retval)
+   ;;(warning-message 2 "_qp-status is ~a ~%" _qp-status)
+   ;;(warning-message 2 "_qp-retval is ~a ~%" _qp-retval)
    (setq _qp-int-status (round (elt _qp-status 0)))
    ;; update config
    (unless (float-vector-p _qp-retval)
