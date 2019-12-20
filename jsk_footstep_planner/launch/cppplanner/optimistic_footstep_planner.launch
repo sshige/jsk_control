@@ -1,12 +1,12 @@
 <launch>
   <arg name="USE_JOY"        default="false" />
-  <arg name="USE_MARKER"     default="true" />
+  <arg name="USE_MARKER"     default="false" />
   <arg name="USE_RVIZ"       default="true" />
-  <arg name="USE_CONTROLLER" default="true" />
-  <arg name="USE_PERCEPTION" default="true"/>
+  <arg name="USE_CONTROLLER" default="false" />
+  <arg name="USE_PERCEPTION" default="false"/>
   <arg name="USE_SIMPLE_FOOTSTEP_CONTROLLER" default="true" />
   <arg name="GLOBAL_FRAME"   default="map" />
-  <arg name="USE_OBSTACLE_MODEL"   default="false" />
+  <arg name="USE_OBSTACLE_MODEL"   default="true" />
   <arg name="ROBOT"   default="" />
   <arg name="FOOTSTEP_PLANNER_PARAM_FILE"   default="$(find jsk_footstep_planner)/config/$(arg ROBOT)_footstep_planner_params.yaml" />
   <node pkg="dynamic_tf_publisher" type="tf_publish.py" name="dynamic_tf_publisher"
@@ -16,7 +16,8 @@
 
   <node pkg="jsk_footstep_planner" type="footstep_planner_node" name="footstep_planner" output="screen"
         respawn="true">
-    <remap from="~pointcloud_model" to="accumulated_heightmap_pointcloud_static/output" />
+    <!-- <remap from="~pointcloud_model" to="accumulated_heightmap_pointcloud_static/output" /> -->
+    <remap from="~obstacle_model" to="/multisense_local/organized_image_points2_color" />
     <!-- <remap from="footstep_planner/result" to="footstep_planner/result_non_refined" /> -->
     <rosparam subst_value="true">
       use_pointcloud_model: $(arg USE_PERCEPTION)
