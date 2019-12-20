@@ -819,45 +819,47 @@ Play motion.
                             (send (send instant-config-task-current :robot-env) :angle-vector)
                             (send (send instant-config-task-next :robot-env) :angle-vector)))
             (send *irtviewer* :draw-objects :flush nil)
-            (if visualize-force?
-                (progn
-                  ;; draw force and moment of the robot
-                  (setq name-set
-                        (intersection
-                         (setq current-name-list (send-all (send instant-config-task-current :contact-attention-coords-list) :name))
-                         (setq next-name-list (send-all (send instant-config-task-next :contact-attention-coords-list) :name))))
-                  (dolist (name name-set)
-                    (setq current-coords-idx
-                          (concatenate cons current-coords-idx
-                                       (list (position-if #'(lambda (nm) (string= nm name)) current-name-list))))
-                    (setq next-coords-idx
-                          (concatenate cons next-coords-idx
-                                       (list (position-if #'(lambda (nm) (string= nm name)) next-name-list)))))
-                  (draw-force-value
-                   :force-list
-                   (midvec-list
-                    (/ (float (1+ j)) 10)
-                    (mapcar #'(lambda (idx) (elt (send instant-config-task-current :force-list) idx))
-                            current-coords-idx)
-                    (mapcar #'(lambda (idx) (elt (send instant-config-task-next :force-list) idx))
-                            next-coords-idx))
-                   :moment-list
-                   (midvec-list
-                    (/ (float (1+ j)) 10)
-                    (mapcar #'(lambda (idx) (elt (send instant-config-task-current :moment-list) idx))
-                            current-coords-idx)
-                    (mapcar #'(lambda (idx) (elt (send instant-config-task-next :moment-list) idx))
-                            next-coords-idx))
-                   :coords-list
-                   (midcoords-list
-                    (/ (float (1+ j)) 10)
-                    (mapcar #'(lambda (idx) (elt (send instant-config-task-current :contact-target-coords-list) idx))
-                            current-coords-idx)
-                    (mapcar #'(lambda (idx) (elt (send instant-config-task-next :contact-target-coords-list) idx))
-                            next-coords-idx))
-                   :force-color force-color
-                   :draw-cop? nil
-                   )))
+            (when visualize-force?
+              ;; draw force and moment of the robot
+              (setq name-set
+                    (intersection
+                     (setq current-name-list (send-all (send instant-config-task-current :contact-attention-coords-list) :name))
+                     (setq next-name-list (send-all (send instant-config-task-next :contact-attention-coords-list) :name))))
+              (dolist (name name-set)
+                (setq current-coords-idx
+                      (concatenate cons current-coords-idx
+                                   (list (position-if #'(lambda (nm) (string= nm name)) current-name-list))))
+                (setq next-coords-idx
+                      (concatenate cons next-coords-idx
+                                   (list (position-if #'(lambda (nm) (string= nm name)) next-name-list)))))
+              (draw-force-value
+               :force-list
+               (mapcar
+                #'(lambda (vec1 vec2) (midpoint (/ (float (1+ j)) 10) vec1 vec2))
+                (mapcar #'(lambda (idx) (elt (send instant-config-task-current :force-list) idx))
+                        current-coords-idx)
+                (mapcar #'(lambda (idx) (elt (send instant-config-task-next :force-list) idx))
+                        next-coords-idx)
+                )
+               :moment-list
+               (mapcar
+                #'(lambda (vec1 vec2) (midpoint (/ (float (1+ j)) 10) vec1 vec2))
+                (mapcar #'(lambda (idx) (elt (send instant-config-task-current :moment-list) idx))
+                        current-coords-idx)
+                (mapcar #'(lambda (idx) (elt (send instant-config-task-next :moment-list) idx))
+                        next-coords-idx)
+                )
+               :coords-list
+               (mapcar
+                #'(lambda (coords1 coords2) (midcoords (/ (float (1+ j)) 10) coords1 coords2))
+                (mapcar #'(lambda (idx) (elt (send instant-config-task-current :contact-target-coords-list) idx))
+                        current-coords-idx)
+                (mapcar #'(lambda (idx) (elt (send instant-config-task-next :contact-target-coords-list) idx))
+                        next-coords-idx))
+               :force-color force-color
+               :draw-cop? nil
+               ))
+>>>>>>> 84c6fb4fabfcfc1d743af075bff77d7f9f678b9e
             (x::window-main-one)
             (send *irtviewer* :viewer :flush)
             (unix::usleep (* 40 1000))

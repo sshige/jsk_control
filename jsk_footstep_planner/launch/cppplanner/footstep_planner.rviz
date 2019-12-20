@@ -7,7 +7,7 @@ Panels:
         - /Footstep1
         - /Heigtmap1
       Splitter Ratio: 0.5
-    Tree Height: 1099
+    Tree Height: 359
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -16,7 +16,7 @@ Panels:
       - /2D Nav Goal1
       - /Publish Point1
     Name: Tool Properties
-    Splitter Ratio: 0.588679
+    Splitter Ratio: 0.588679016
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -26,9 +26,11 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: CloseList
+    SyncSource: ""
   - Class: jsk_rviz_plugin/RobotCommandInterfaceAction
     Name: RobotCommandInterfaceAction
+Toolbars:
+  toolButtonStyle: 2
 Visualization Manager:
   Class: ""
   Displays:
@@ -38,7 +40,7 @@ Visualization Manager:
       Color: 160; 160; 164
       Enabled: true
       Line Style:
-        Line Width: 0.03
+        Line Width: 0.0299999993
         Value: Lines
       Name: Grid
       Normal Cell Count: 0
@@ -65,11 +67,12 @@ Visualization Manager:
       Name: Footstep
       Show Name: true
       Topic: /footstep_from_marker
+      Unreliable: false
       Use Group Coloring: false
       Value: true
-      Width: 0.15
-      depth: 0.3
-      height: 0.01
+      Width: 0.150000006
+      depth: 0.300000012
+      height: 0.00999999978
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -93,9 +96,10 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.01
+      Size (m): 0.00999999978
       Style: Flat Squares
       Topic: /footstep_planner/close_list
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -122,17 +126,18 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.01
+      Size (m): 0.00999999978
       Style: Flat Squares
       Topic: /footstep_planner/open_list
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
     - Alpha: 0.5
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 1.86793
-        Min Value: -0.461512
+        Max Value: 1.86793005
+        Min Value: -0.461511999
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -151,17 +156,19 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.01
+      Size (m): 0.00999999978
       Style: Flat Squares
       Topic: /accumulated_heightmap_pointcloud_static/output
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Background Alpha: 0.8
+    - Align Bottom: false
+      Background Alpha: 0.800000012
       Background Color: 0; 0; 0
       Class: jsk_rviz_plugin/OverlayText
       Enabled: true
-      Foreground Alpha: 0.8
+      Foreground Alpha: 0.800000012
       Foreground Color: 25; 255; 240
       Name: PlanningText
       Overtake Color Properties: false
@@ -219,6 +226,16 @@ Visualization Manager:
           Show Trail: false
           Value: true
         HEAD_LINK1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LARM_FINGER0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LARM_FINGER1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -293,22 +310,22 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        L_thk_finger1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        L_thk_finger2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        L_thk_palm:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         Link Tree Style: Links in Alphabetic Order
+        RANGE_LINK:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RARM_FINGER0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RARM_FINGER1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         RARM_LINK0:
           Alpha: 1
           Show Axes: false
@@ -379,51 +396,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        R_thk_finger1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        R_thk_finger2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        R_thk_palm:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        accel:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        center_bottom_led_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        center_top_led_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fisheye:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        gyro:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        head:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         head_end_coords:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        head_hokuyo_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -431,32 +404,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        hokuyo_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         larm_end_coords:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_led_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        lfsensor:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        lhsensor:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -464,43 +412,11 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        mag:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        motor:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         rarm_end_coords:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        rfsensor:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        rhsensor:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_camera_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_camera_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        right_led_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         rleg_end_coords:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        spindle:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -517,14 +433,16 @@ Visualization Manager:
       color: 25; 255; 240
       duration: 10
       frame: BODY
-      line_width: 0.01
-    - Alpha: 0.7
+      line_width: 0.00999999978
+    - Alpha: 0.699999988
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
       Enabled: false
       Name: Map
       Topic: /map
+      Unreliable: false
+      Use Timestamp: false
       Value: false
     - Class: rviz/TF
       Enabled: false
@@ -540,11 +458,12 @@ Visualization Manager:
         {}
       Update Interval: 0
       Value: false
-    - Background Alpha: 0.8
+    - Align Bottom: false
+      Background Alpha: 0.800000012
       Background Color: 0; 0; 0
       Class: jsk_rviz_plugin/OverlayText
       Enabled: true
-      Foreground Alpha: 0.8
+      Foreground Alpha: 0.800000012
       Foreground Color: 255; 255; 255
       Name: ControllerHelp
       Overtake Color Properties: true
@@ -563,8 +482,9 @@ Visualization Manager:
       Name: Heigtmap
       Topic: /heightmap_visualization/accumulated/colorize_heightmap/output
       Value: true
-      alpha: 0.8
+      alpha: 0.800000012
       height: 128
+      keep aspect ratio: false
       left: 0
       top: 750
       width: 128
@@ -591,7 +511,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.01
+      Size (m): 0.00999999978
       Style: Flat Squares
       Topic: /footstep_planner/obstacle_model
       Unreliable: false
@@ -601,6 +521,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
+    Default Light: true
     Fixed Frame: odom
     Frame Rate: 30
   Name: root
@@ -623,30 +544,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.05609
+      Distance: 12.6764154
       Enable Stereo Rendering:
-        Stereo Eye Separation: 0.06
+        Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.870522
-        Y: -0.862869
-        Z: -0.75133
+        X: 1.3097738
+        Y: 0.0608688928
+        Z: 0.722403705
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.0500000007
+      Invert Z Axis: false
       Name: Current View
-      Near Clip Distance: 0.01
-      Pitch: 1.3198
+      Near Clip Distance: 0.00999999978
+      Pitch: 0.579800725
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.34594
+      Yaw: 3.93093872
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1524
-  Hide Left Dock: false
+  Height: 848
+  Hide Left Dock: true
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000224000004dafc0200000008fb0000001200530065006c0065006300740069006f006e00000000410000009b0000006400fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730000000041000004da000000dd00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000551fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000004100000551000000b000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000500000000b5fc0100000002fc0000000000000500000002f600fffffffa000000000200000002fb000000360052006f0062006f00740043006f006d006d0061006e00640049006e00740065007200660061006300650041006300740069006f006e0100000000ffffffff0000004100fffffffb0000000800540069006d0065010000052c0000003e0000003b00fffffffb0000000800540069006d0065010000000000000450000000000000000000000500000004da00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000224000004dafc0200000008fb0000001200530065006c0065006300740069006f006e00000000410000009b0000006100fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730000000041000004da000000d700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000551fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000004100000551000000ad00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000500000000b5fc0100000002fc00000000000005000000030000fffffffa000000000200000002fb000000360052006f0062006f00740043006f006d006d0061006e00640049006e00740065007200660061006300650041006300740069006f006e0100000000ffffffff0000004100fffffffb0000000800540069006d0065010000052c0000003e0000003b00fffffffb0000000800540069006d00650100000000000004500000000000000000000005000000024f00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   RobotCommandInterfaceAction:
     collapsed: false
   Selection:
@@ -658,5 +582,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1280
-  X: -6
+  X: 306
   Y: 24
