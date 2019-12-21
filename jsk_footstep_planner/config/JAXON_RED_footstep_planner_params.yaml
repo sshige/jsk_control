@@ -1,7 +1,9 @@
 footstep_size_x: 0.24
 footstep_size_y: 0.14
-collision_bbox_size: [0.4, 1.2, 1.0]
-collision_bbox_offset: [0, 0, 0]
+
+collision_bbox_size: [0.35, 0.65, 0.65]
+collision_bbox_offset: [0, 0, 0.8]
+
 successors:
   - x: 0
     y: -0.2
